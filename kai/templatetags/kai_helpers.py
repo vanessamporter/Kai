@@ -3,8 +3,7 @@
 import math
 
 from django import template
-from django.utils.html import escape
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 
 register = template.Library()
 
@@ -44,7 +43,7 @@ def pagy_series_nav(context, page_obj):
     def page_url(number):
         params = request.GET.copy()
         params["page"] = number
-        return escape(f"{request.path}?{params.urlencode()}")
+        return f"{request.path}?{params.urlencode()}"
 
     previous_page = page - 1 if page > 1 else None
     next_page = page + 1 if page < last else None
@@ -52,32 +51,41 @@ def pagy_series_nav(context, page_obj):
     parts = []
     if previous_page:
         parts.append(
-            f'<a href="{page_url(previous_page)}" rel="prev" aria-label="Previous">&lt;</a>'
+            format_html(
+                '<a href="{}" rel="prev" aria-label="Previous">&lt;</a>',
+                page_url(previous_page),
+            )
         )
     else:
-        parts.append('<a role="link" aria-disabled="true" aria-label="Previous">&lt;</a>')
+        parts.append(
+            format_html('<a role="link" aria-disabled="true" aria-label="Previous">{}</a>', "<")
+        )
     for item in pagy_series(page, last):
         if item is GAP:
-            parts.append('<a role="separator" aria-disabled="true">&hellip;</a>')
+            parts.append(format_html('<a role="separator" aria-disabled="true">{}</a>', "…"))
         elif isinstance(item, str):
-            parts.append(f'<a role="link" aria-disabled="true" aria-current="page">{item}</a>')
+            parts.append(
+                format_html('<a role="link" aria-disabled="true" aria-current="page">{}</a>', item)
+            )
         else:
             if item == previous_page:
-                rel = ' rel="prev"'
+                parts.append(format_html('<a href="{}" rel="prev">{}</a>', page_url(item), item))
             elif item == next_page:
-                rel = ' rel="next"'
+                parts.append(format_html('<a href="{}" rel="next">{}</a>', page_url(item), item))
             else:
-                rel = ""
-            parts.append(f'<a href="{page_url(item)}"{rel}>{item}</a>')
+                parts.append(format_html('<a href="{}">{}</a>', page_url(item), item))
     if next_page:
-        parts.append(f'<a href="{page_url(next_page)}" rel="next" aria-label="Next">&gt;</a>')
+        parts.append(
+            format_html('<a href="{}" rel="next" aria-label="Next">&gt;</a>', page_url(next_page))
+        )
     else:
-        parts.append('<a role="link" aria-disabled="true" aria-label="Next">&gt;</a>')
+        parts.append(
+            format_html('<a role="link" aria-disabled="true" aria-label="Next">{}</a>', ">")
+        )
 
     aria_label = "Page" if last == 1 else "Pages"
-    return mark_safe(
-        f'<nav class="pagy series-nav" aria-label="{aria_label}">{"".join(parts)}</nav>'
-    )
+    links = format_html_join("", "{}", ((part,) for part in parts))
+    return format_html('<nav class="pagy series-nav" aria-label="{}">{}</nav>', aria_label, links)
 
 
 @register.filter

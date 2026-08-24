@@ -6,14 +6,17 @@ import re
 import resource
 import shutil
 import struct
-import subprocess
+import subprocess  # nosec B404
+import tempfile
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-CAPINFOS_AVAILABLE = shutil.which("capinfos") is not None
-TSHARK_AVAILABLE = shutil.which("tshark") is not None
+CAPINFOS_PATH = shutil.which("capinfos")
+TSHARK_PATH = shutil.which("tshark")
+CAPINFOS_AVAILABLE = CAPINFOS_PATH is not None
+TSHARK_AVAILABLE = TSHARK_PATH is not None
 TSHARK_PACKET_LIMIT = 100_000
 TSHARK_TIMEOUT_SECONDS = 60
 TSHARK_LIST_LIMIT = 100
@@ -106,7 +109,7 @@ def _limit_analysis_process():
 
 def _analysis_process_options():
     return {
-        "env": {"HOME": "/tmp", "LANG": "C.UTF-8", "PATH": os.defpath},
+        "env": {"HOME": tempfile.gettempdir(), "LANG": "C.UTF-8", "PATH": os.defpath},
         "start_new_session": True,
         "preexec_fn": _limit_analysis_process,
     }
@@ -134,7 +137,7 @@ def extract(file_path):
 def _extract_with_tshark(file_path, packet_count=None):
     """Return a bounded, JSON-serializable summary of tshark packet fields."""
     command = [
-        "tshark",
+        TSHARK_PATH,
         "-n",
         "-r",
         str(file_path),
@@ -166,7 +169,7 @@ def _extract_with_tshark(file_path, packet_count=None):
         command.extend(("-e", field))
 
     try:
-        completed = subprocess.run(
+        completed = subprocess.run(  # nosec B603
             command,
             capture_output=True,
             text=True,
@@ -272,8 +275,8 @@ def _last_value(value):
 
 
 def _extract_with_capinfos(file_path):
-    result = subprocess.run(
-        ["capinfos", "-M", "-T", str(file_path)],
+    result = subprocess.run(  # nosec B603
+        [CAPINFOS_PATH, "-M", "-T", str(file_path)],
         capture_output=True,
         text=True,
         check=False,

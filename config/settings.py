@@ -14,7 +14,7 @@ def env_bool(name, default=False):
     return default if value is None else value.lower() in ("1", "true", "yes", "on")
 
 
-DEV_SECRET_KEY = "dev-only-secret-key-base-change-in-production"
+DEV_SECRET_KEY = "dev-only-secret-key-base-change-in-production"  # nosec B105
 SECRET_KEY = os.environ.get("SECRET_KEY_BASE", DEV_SECRET_KEY)
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "") == "1"
