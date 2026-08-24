@@ -151,6 +151,7 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "pytest-django" },
+    { name = "pytest-github-actions-annotate-failures" },
     { name = "ruff" },
 ]
 
@@ -168,6 +169,7 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-django", specifier = ">=4.9" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.4.2" },
     { name = "ruff", specifier = ">=0.8" },
 ]
 
@@ -303,6 +305,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/44/f6/3851312120c2bf2f19cafff931e75059aad1ba670703cd751e2fde9bc942/pytest_django-4.14.0.tar.gz", hash = "sha256:26787dd3f422cfbab8f55b80a776e2edea7a11092cb74e960bef1312515708ef", size = 94700, upload-time = "2026-08-10T14:13:08.319Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9c/03/850bffad2b581c440ca51c039d74504d5a422c94bda0bdb8a8ba5068d48b/pytest_django-4.14.0-py3-none-any.whl", hash = "sha256:c533b08d89cc675efcd5398eea270b34547e35f9a3608e2c9748dd88428ea187", size = 27067, upload-time = "2026-08-10T14:13:06.998Z" },
+]
+
+[[package]]
+name = "pytest-github-actions-annotate-failures"
+version = "0.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/00/a0/bdb91581b03c41016c78e16b8ec36c34d8508206fcb30f1951c9cdff2e97/pytest_github_actions_annotate_failures-0.4.2.tar.gz", hash = "sha256:5dd18304512361788bc7b5c5c805db853f03f4950c6be09b088de6bab8e2e6c9", size = 12158, upload-time = "2026-06-19T15:59:17.445Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/09/c44e658f3a27c588c2017d858c8b0fa962612af9b74326beabbf010c839c/pytest_github_actions_annotate_failures-0.4.2-py3-none-any.whl", hash = "sha256:02911cd3b55f235328a334f8ca6037a89944398b8e8b028c82de97111eff4071", size = 6151, upload-time = "2026-06-19T15:59:16.486Z" },
 ]
 
 [[package]]
