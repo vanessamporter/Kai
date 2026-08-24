@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 dependencies = [
-    "django~=5.2",
+    "django~=6.1",
     "psycopg[binary]~=3.2",
     "bcrypt>=4.1",
     "gunicorn>=23.0",
