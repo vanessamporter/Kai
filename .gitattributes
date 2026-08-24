@@ -1,0 +1,9 @@
+# See https://git-scm.com/docs/gitattributes for more about git attribute files.
+
+# Mark the dependency lockfile as generated.
+uv.lock linguist-generated
+
+# Mark vendored frontend bundles and the built stylesheet as vendored.
+kai/static/js/vendor/* linguist-vendored
+kai/static/css/tailwind.css linguist-generated
+public/swagger-ui/* linguist-vendored

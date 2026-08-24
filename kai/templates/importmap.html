@@ -1,0 +1,21 @@
+{% load static %}<script type="importmap" data-turbo-track="reload" nonce="{{ csp_nonce }}">
+{
+  "imports": {
+    "application": "{% static 'js/application.js' %}",
+    "@hotwired/turbo-rails": "{% static 'js/vendor/turbo.min.js' %}",
+    "@hotwired/stimulus": "{% static 'js/vendor/stimulus.min.js' %}",
+    "@hotwired/stimulus-loading": "{% static 'js/vendor/stimulus-loading.js' %}",
+    "tom-select": "{% static 'js/vendor/tom-select.js' %}",
+    "controllers/application": "{% static 'js/controllers/application.js' %}",
+    "controllers/lookup_select_controller": "{% static 'js/controllers/lookup_select_controller.js' %}",
+    "controllers/search_form_controller": "{% static 'js/controllers/search_form_controller.js' %}",
+    "controllers/tag_delete_controller": "{% static 'js/controllers/tag_delete_controller.js' %}",
+    "controllers/tag_input_controller": "{% static 'js/controllers/tag_input_controller.js' %}",
+    "controllers/tag_row_controller": "{% static 'js/controllers/tag_row_controller.js' %}",
+    "controllers/theme_controller": "{% static 'js/controllers/theme_controller.js' %}",
+    "controllers": "{% static 'js/controllers/index.js' %}"
+  }
+}
+</script>
+<link rel="modulepreload" href="{% static 'js/application.js' %}">
+<script type="module" nonce="{{ csp_nonce }}">import "application"</script>

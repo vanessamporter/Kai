@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@layer base {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="date"],
+  select,
+  textarea {
+    @apply bg-gray-800 text-gray-100 border-gray-600;
+  }
+}

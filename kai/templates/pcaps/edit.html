@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Edit <span class="text-amber-400">{{ pcap.filename }}</span></h1>
+
+  <form class="space-y-5" method="post" action="/pcaps/{{ pcap.id }}">
+    {% csrf_token %}
+    {% include "pcaps/_form_fields.html" %}
+
+    <div class="flex gap-2">
+      <input type="submit" value="Save changes" class="kai-btn kai-btn-primary">
+      <a href="/pcaps/{{ pcap.id }}" class="kai-btn kai-btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

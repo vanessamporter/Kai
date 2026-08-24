@@ -1,0 +1,90 @@
+{% load static %}<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block title %}Kai{% endblock %}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Kai">
+    <meta name="mobile-web-app-capable" content="yes">
+    <script nonce="{{ csp_nonce }}">
+      (function(){
+        var t = localStorage.getItem('kai-theme');
+        if (!t) t = matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+    <meta name="csrf-param" content="csrfmiddlewaretoken">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    {% block head %}{% endblock %}
+
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}" data-turbo-track="reload">
+
+    <link rel="icon" href="/icon.png?v=kai-mountain" type="image/png">
+    <link rel="icon" href="/icon.svg?v=kai-mountain" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png?v=kai-mountain">
+
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{% static 'css/application.css' %}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{% static 'css/tom-select.css' %}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{% static 'css/tom-select-overrides.css' %}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{% static 'css/tag-input.css' %}" data-turbo-track="reload">
+    {% include "importmap.html" %}
+  </head>
+
+  <body class="min-h-screen">
+    <nav class="kai-nav">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-14 items-center">
+          <div class="flex items-center gap-8">
+            <a href="/" class="kai-logo">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="28" height="28" class="kai-logo-svg" aria-label="Kai mountain icon">
+                <defs>
+                  <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:var(--m-trojan-blue)" />
+                    <stop offset="100%" style="stop-color:var(--m-dsu-blue)" />
+                  </linearGradient>
+                </defs>
+                <path d="M4 51 25 15l12 20 8-13 15 29Z" fill="url(#mountainGrad)" />
+                <path d="m25 15-8 14 8-5 5 6 3-2Z" fill="white" opacity="0.95" />
+                <path d="m45 22-6 10 6-4 4 5 3-1Z" fill="white" opacity="0.9" />
+                <path d="M4 51h56" stroke="var(--m-dsu-gray-light)" stroke-width="3" stroke-linecap="round" />
+              </svg>
+              <span class="kai-logo-text">kai</span>
+            </a>
+            <div class="flex items-center gap-5">
+              <a href="/pcaps" class="kai-nav-link">Search</a>
+              <a href="/pcaps/new" class="kai-nav-link">Upload</a>
+              <a href="/tags" class="kai-nav-link">Tags</a>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button data-controller="theme" data-action="click->theme#toggle" class="kai-theme-toggle" title="Toggle theme">
+              <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+              <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </button>
+            {% if user.is_authenticated %}
+              <a href="/profile" class="kai-nav-link-quiet">{{ user.email }}</a>
+              <form class="button_to" method="post" action="/logout">{% csrf_token %}<input type="hidden" name="_method" value="delete" autocomplete="off"><button class="kai-nav-link-quiet cursor-pointer" type="submit">Log out</button></form>
+            {% else %}
+              <a href="/login" class="kai-nav-link">Log in</a>
+              {% if allow_public_signup %}<a href="/signup" class="kai-nav-link-quiet">Sign up</a>{% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {% for message in messages %}
+        <div class="kai-flash kai-flash-{% if message.level_tag == 'error' %}alert{% else %}notice{% endif %}">{{ message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+    {% if source_code_url %}<footer class="max-w-7xl mx-auto px-4 pb-6 text-sm"><a href="{{ source_code_url }}">Source code</a> · <a href="/LICENSE">AGPL-3.0</a></footer>{% endif %}
+  </body>
+</html>

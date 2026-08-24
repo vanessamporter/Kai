@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="mountain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00a9e0" />
+      <stop offset="100%" style="stop-color:#007db3" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="#003a5d" />
+  <path d="M4 52 25 16l12 20 8-13 15 29Z" fill="url(#mountain)" />
+  <path d="m25 16-8 14 8-5 5 6 3-2Z" fill="#ffffff" />
+  <path d="m45 23-6 10 6-4 4 5 3-1Z" fill="#ffffff" opacity="0.95" />
+  <path d="M4 52h56" stroke="#a6adb4" stroke-width="3" stroke-linecap="round" />
+</svg>

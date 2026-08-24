@@ -1,0 +1,10 @@
+{% load kai_helpers %}
+<div>
+  <label class="block text-sm font-medium text-gray-300" for="{{ field }}">{{ label }}</label>
+  <select name="{{ field }}" id="{{ field }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" data-controller="lookup-select" data-lookup-select-category-value="{{ field }}">
+    <option value="">Any</option>
+    {% for value in options %}
+      <option value="{{ value }}"{% if params|get_param:field == value %} selected{% endif %}>{{ value }}</option>
+    {% endfor %}
+  </select>
+</div>
