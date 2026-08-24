@@ -1,0 +1,9 @@
+<div>
+  <label class="block text-sm font-medium text-gray-300" for="pcap_{{ field }}">{{ label }}</label>
+  <select name="pcap[{{ field }}]" id="pcap_{{ field }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" data-controller="lookup-select" data-lookup-select-category-value="{{ field }}" data-lookup-select-allow-create-value="true">
+    <option value="">Select...</option>
+    {% for value in options %}
+      <option value="{{ value }}"{% if selected == value %} selected{% endif %}>{{ value }}</option>
+    {% endfor %}
+  </select>
+</div>

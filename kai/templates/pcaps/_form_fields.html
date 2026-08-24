@@ -1,0 +1,87 @@
+{% if errors %}
+  <div class="kai-flash kai-flash-alert" style="margin-bottom: 0;">
+    {% for msg in errors %}
+      <p>{{ msg }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if include_file_card %}
+<div class="kai-card">
+  <div class="kai-card-header">File</div>
+  <input accept=".pcap,.pcapng" required class="block w-full text-sm text-gray-400" type="file" name="pcap[file]" id="pcap_file">
+</div>
+{% endif %}
+
+<div class="kai-card">
+  <div class="kai-card-header">Capture Info</div>
+  <div class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="pcap_event">Event</label>
+      <input class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" type="text" value="{{ pcap.event|default_if_none:'' }}" name="pcap[event]" id="pcap_event">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="pcap_description">Description</label>
+      <textarea rows="2" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" name="pcap[description]" id="pcap_description">{{ pcap.description|default_if_none:'' }}</textarea>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="pcap_notes">Notes</label>
+      <textarea rows="3" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" name="pcap[notes]" id="pcap_notes">{{ pcap.notes|default_if_none:'' }}</textarea>
+    </div>
+  </div>
+</div>
+
+<div class="kai-card">
+  <div class="kai-card-header">Tags</div>
+  <div data-controller="tag-input" data-tag-input-url-value="/tags" class="tag-input-wrap">
+    <div data-tag-input-target="container" class="tag-input-container">
+      <input type="text" data-tag-input-target="input" class="tag-input-field" placeholder="Type a tag and press Enter" autocomplete="off">
+    </div>
+    <input type="hidden" name="pcap[tag_list]" data-tag-input-target="hidden" value="{{ tag_list }}">
+    <div data-tag-input-target="dropdown" class="tag-input-dropdown hidden" role="listbox"></div>
+  </div>
+</div>
+
+<div class="kai-card">
+  <div class="kai-card-header">Classification</div>
+  <div class="grid grid-cols-2 gap-4">
+    {% include "pcaps/_form_lookup_select.html" with field="sector" label="Sector" options=sectors selected=pcap.sector %}
+    {% include "pcaps/_form_lookup_select.html" with field="platform" label="Platform" options=platforms selected=pcap.platform %}
+    {% include "pcaps/_form_lookup_select.html" with field="location" label="Location" options=locations selected=pcap.location %}
+    {% include "pcaps/_form_lookup_select.html" with field="sponsor" label="Sponsor" options=sponsors selected=pcap.sponsor %}
+    {% include "pcaps/_form_lookup_select.html" with field="hmi" label="HMI" options=hmis selected=pcap.hmi %}
+    {% include "pcaps/_form_lookup_select.html" with field="plc" label="PLC" options=plcs selected=pcap.plc %}
+  </div>
+
+  <div class="mt-4">
+    <label class="block text-sm font-medium text-gray-300" for="pcap_ot_protocols">OT Protocols</label>
+    <input type="hidden" name="pcap[ot_protocols][]" value="">
+    <select name="pcap[ot_protocols][]" id="pcap_ot_protocols" multiple class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" data-controller="lookup-select" data-lookup-select-category-value="ot_protocol" data-lookup-select-allow-create-value="true">
+      {% for value in ot_protocols %}
+        <option value="{{ value }}"{% if pcap.ot_protocols and value in pcap.ot_protocols %} selected{% endif %}>{{ value }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+<div class="kai-card">
+  <div class="kai-card-header">Network Details</div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="pcap_source_host">Source host</label>
+      <input class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" type="text" value="{{ pcap.source_host|default_if_none:'' }}" name="pcap[source_host]" id="pcap_source_host">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="pcap_network_interface">Network interface</label>
+      <input class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" type="text" value="{{ pcap.network_interface|default_if_none:'' }}" name="pcap[network_interface]" id="pcap_network_interface">
+    </div>
+  </div>
+</div>
+
+<div class="flex items-center gap-2">
+  <input name="pcap[baseline]" type="hidden" value="0" autocomplete="off">
+  <input class="rounded border-gray-600 text-amber-500 focus:ring-amber-500" type="checkbox" value="1"{% if pcap.baseline %} checked{% endif %} name="pcap[baseline]" id="pcap_baseline">
+  <label class="text-sm text-gray-300" style="text-transform: none; letter-spacing: normal; font-family: var(--kai-body);" for="pcap_baseline">Baseline capture (normal traffic)</label>
+</div>

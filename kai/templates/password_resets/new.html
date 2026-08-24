@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto mt-8"><div class="kai-auth-card">
+  <h1 class="text-lg font-bold mb-3">Reset password</h1>
+  <p class="text-sm text-gray-500 mb-6">Enter your account email. If it is eligible for local password recovery, Kai will send a time-limited reset link.</p>
+  <form class="space-y-4" method="post" action="/password_reset">{% csrf_token %}
+    {{ form.email.errors }}
+    <div><label class="block text-sm font-medium text-gray-300" for="id_email">Email</label><input autofocus required class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm" type="email" name="email" id="id_email" autocomplete="email"></div>
+    <input type="submit" value="Send reset link" class="kai-btn kai-btn-primary w-full justify-center">
+  </form>
+</div></div>
+{% endblock %}

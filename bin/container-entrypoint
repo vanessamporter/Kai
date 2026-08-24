@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+# Wait for PostgreSQL to be ready
+if [ -n "${DATABASE_URL}" ]; then
+  echo "Waiting for database..."
+  until pg_isready -d "${DATABASE_URL}" -q 2>/dev/null; do
+    sleep 1
+  done
+  echo "Database is ready."
+fi
+
+if [ "${1:-web}" = "worker" ]; then
+  exec python manage.py analyze_pcaps
+fi
+
+python manage.py migrate --noinput
+exec gunicorn config.wsgi --bind 0.0.0.0:3022 \
+  --workers "${WEB_CONCURRENCY:-3}" --access-logfile - --error-logfile -

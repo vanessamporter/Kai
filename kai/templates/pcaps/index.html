@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load kai_helpers %}
+
+{% block content %}
+<header class="kai-page-heading mb-6">
+  <div>
+    <h1 class="text-3xl font-bold">Captures</h1>
+    <p>Search and browse the packet library.</p>
+  </div>
+  <a href="/pcaps/new" class="kai-btn kai-btn-primary">Upload capture</a>
+</header>
+
+<div class="kai-browser-layout">
+<form action="/pcaps" method="get" class="kai-search-panel space-y-4" data-turbo-frame="pcap_results" data-controller="search-form">
+  <h2 class="kai-filter-title">Filter the library</h2>
+  <div class="flex gap-4">
+    <div class="flex-1">
+      <label class="block text-sm font-medium text-gray-300" for="tags">Tags</label>
+      <div data-controller="tag-input" data-tag-input-url-value="/tags" class="tag-input-wrap mt-1">
+        <div data-tag-input-target="container" class="tag-input-container">
+          <input type="text" data-tag-input-target="input" class="tag-input-field" placeholder="Filter by tags..." autocomplete="off">
+        </div>
+        <input type="hidden" name="tags" data-tag-input-target="hidden" value="{{ params.tags }}">
+        <div data-tag-input-target="dropdown" class="tag-input-dropdown hidden" role="listbox"></div>
+      </div>
+    </div>
+    <div class="flex-1">
+      <label class="block text-sm font-medium text-gray-300" for="q">Search</label>
+      <input type="search" name="q" id="q" value="{{ params.q }}" placeholder="Full-text search across all fields..." class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% include "pcaps/_lookup_select.html" with field="sector" label="Sector" options=sectors %}
+    {% include "pcaps/_lookup_select.html" with field="platform" label="Platform" options=platforms %}
+    {% include "pcaps/_lookup_select.html" with field="location" label="Location" options=locations %}
+    {% include "pcaps/_lookup_select.html" with field="sponsor" label="Sponsor" options=sponsors %}
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="event">Event</label>
+      <input type="text" name="event" id="event" value="{{ params.event }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+    </div>
+    {% include "pcaps/_lookup_select.html" with field="hmi" label="HMI" options=hmis %}
+    {% include "pcaps/_lookup_select.html" with field="plc" label="PLC" options=plcs %}
+    <div>
+      <label class="block text-sm font-medium text-gray-300" for="baseline">Baseline</label>
+      <select name="baseline" id="baseline" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+        <option value="either"{% if not params.baseline or params.baseline == "either" %} selected{% endif %}>Either</option>
+        <option value="yes"{% if params.baseline == "yes" %} selected{% endif %}>Yes</option>
+        <option value="no"{% if params.baseline == "no" %} selected{% endif %}>No</option>
+      </select>
+    </div>
+  </div>
+
+  <details class="text-sm">
+    <summary>Advanced filters</summary>
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-300" for="uploader">Uploader</label>
+        <input type="text" name="uploader" id="uploader" value="{{ params.uploader }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300" for="source_host">Source host</label>
+        <input type="text" name="source_host" id="source_host" value="{{ params.source_host }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300" for="date_from">Capture date from</label>
+        <input type="date" name="date_from" id="date_from" value="{{ params.date_from }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-300" for="date_to">Capture date to</label>
+        <input type="date" name="date_to" id="date_to" value="{{ params.date_to }}" class="mt-1 block w-full rounded border-gray-600 shadow-sm sm:text-sm">
+      </div>
+    </div>
+  </details>
+
+  <div class="flex gap-2">
+    <input type="submit" value="Search" class="kai-btn kai-btn-primary">
+    <a href="/pcaps" class="kai-btn kai-btn-ghost">Clear</a>
+  </div>
+</form>
+
+<turbo-frame id="pcap_results">
+  {% if pcaps %}
+    <div class="kai-result-count mb-3"><strong>{{ total_count }}</strong> captures found</div>
+    <div class="overflow-x-auto kai-card" style="padding: 0;">
+      <table class="kai-table">
+        <thead>
+          <tr>
+            <th>Filename</th>
+            <th>Event</th>
+            <th>Sector</th>
+            <th>Tags</th>
+            <th>Baseline</th>
+            <th>Size</th>
+            <th>Capture Date</th>
+            <th>Uploader</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pcap in pcaps %}
+            <tr>
+              <td><a href="/pcaps/{{ pcap.id }}" data-turbo-frame="_top">{{ pcap.filename }}</a></td>
+              <td>{{ pcap.event|default_if_none:"" }}</td>
+              <td>{{ pcap.sector|default_if_none:"" }}</td>
+              <td>
+                {% for tag in pcap.tags.all %}
+                  <span class="kai-tag">{{ tag.name }}</span>
+                {% endfor %}
+              </td>
+              <td>{% if pcap.baseline %}Yes{% endif %}</td>
+              <td class="mono">{{ pcap.file_size|human_size }}</td>
+              <td class="mono">{{ pcap.capture_start_time|date:"Y-m-d" }}</td>
+              <td>{{ pcap.user.email }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4">
+      {% pagy_series_nav page_obj %}
+    </div>
+  {% else %}
+    <div class="text-center py-12">
+      {% if has_filters %}
+        <p class="text-gray-400 text-lg mb-2">No pcaps match your filters.</p>
+        <p class="text-gray-500 text-sm">Try broadening your search or <a href="/pcaps" class="text-amber-400 hover:underline">clear all filters</a>.</p>
+      {% else %}
+        <p class="text-gray-400 text-lg mb-2">No pcap files yet.</p>
+        {% if user.is_authenticated %}
+          <p class="text-gray-500 text-sm"><a href="/pcaps/new" class="text-amber-400 hover:underline">Upload your first capture</a> to get started.</p>
+        {% else %}
+          <p class="text-gray-500 text-sm"><a href="/login" class="text-amber-400 hover:underline">Log in</a> to upload captures.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+  {% endif %}
+</turbo-frame>
+</div>
+{% endblock %}

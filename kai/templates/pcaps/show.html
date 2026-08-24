@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load kai_helpers %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">{{ pcap.filename }}</h1>
+      {% if pcap.tags.all %}
+        <div class="flex flex-wrap gap-1 mt-2">
+          {% for tag in pcap.tags.all %}
+            <span class="kai-tag">{{ tag.name }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="flex gap-2 items-center">
+      <a href="/pcaps/{{ pcap.id }}/download" class="kai-btn kai-btn-primary">Download</a>
+      {% if user.is_staff or user == pcap.user %}
+        <a href="/pcaps/{{ pcap.id }}/edit" class="kai-btn kai-btn-ghost">Edit</a>
+        <form class="button_to" method="post" action="/pcaps/{{ pcap.id }}" data-turbo-confirm="Are you sure you want to delete this pcap?">{% csrf_token %}<input type="hidden" name="_method" value="delete" autocomplete="off"><button class="kai-btn kai-btn-danger" type="submit">Delete</button></form>
+      {% endif %}
+      <a href="/pcaps" class="kai-nav-link-quiet text-sm">Back</a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="kai-card">
+      <div class="kai-card-header">Metadata</div>
+      <dl class="kai-dl space-y-2">
+        {% for label, value in metadata_pairs %}
+          <div class="flex">
+            <dt>{{ label }}</dt>
+            <dd>{{ value }}</dd>
+          </div>
+        {% endfor %}
+        {% if pcap.ot_protocols %}
+          <div class="flex">
+            <dt>OT Protocols</dt>
+            <dd>{{ pcap.ot_protocols|join:", " }}</dd>
+          </div>
+        {% endif %}
+        {% if pcap.notes %}
+          <div>
+            <dt class="mb-1">Notes</dt>
+            <dd class="whitespace-pre-wrap">{{ pcap.notes }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="space-y-6">
+      <div class="kai-card">
+        <div class="kai-card-header">File Info</div>
+        <dl class="kai-dl space-y-2">
+          <div class="flex">
+            <dt>Size</dt>
+            <dd class="mono-val">{{ pcap.file_size|human_size }}</dd>
+          </div>
+          <div class="flex">
+            <dt>SHA-256</dt>
+            <dd class="mono-val text-xs break-all">{{ pcap.sha256|default_if_none:"" }}</dd>
+          </div>
+          {% if pcap.file_format %}
+            <div class="flex">
+              <dt>Format</dt>
+              <dd class="mono-val">{{ pcap.file_format }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      {% if has_capture_details %}
+        <div class="kai-card">
+          <div class="kai-card-header">Capture Details</div>
+          <dl class="kai-dl space-y-2">
+            {% for label, value in capture_pairs %}
+              <div class="flex">
+                <dt>{{ label }}</dt>
+                <dd class="mono-val">{{ value }}</dd>
+              </div>
+            {% endfor %}
+          </dl>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if analysis_status and analysis_status != "complete" %}
+    <div class="kai-flash kai-flash-notice mt-6">Packet analysis: {{ analysis_status }}</div>
+  {% endif %}
+
+  {% if analysis %}
+    <div class="kai-card mt-6">
+      <div class="kai-card-header">Automatic Tshark Analysis</div>
+      <dl class="kai-dl space-y-3">
+        <div class="flex">
+          <dt>Analyzed</dt>
+          <dd class="mono-val">{{ analysis.analyzed_packets }} packets{% if analysis.truncated %} (first 100,000){% endif %}</dd>
+        </div>
+        {% if analysis.protocols %}
+          <div class="flex">
+            <dt>Protocols</dt>
+            <dd class="flex flex-wrap gap-1">
+              {% for protocol in analysis.protocols %}<span class="kai-tag">{{ protocol }}</span>{% endfor %}
+            </dd>
+          </div>
+        {% endif %}
+        {% if analysis.tcp_ports %}
+          <div class="flex"><dt>TCP Ports</dt><dd class="mono-val">{{ analysis.tcp_ports|join:", " }}</dd></div>
+        {% endif %}
+        {% if analysis.udp_ports %}
+          <div class="flex"><dt>UDP Ports</dt><dd class="mono-val">{{ analysis.udp_ports|join:", " }}</dd></div>
+        {% endif %}
+        {% if analysis.dns_queries %}
+          <div class="flex"><dt>DNS Queries</dt><dd class="mono-val">{{ analysis.dns_queries|join:", " }}</dd></div>
+        {% endif %}
+        {% if analysis.http_hosts %}
+          <div class="flex"><dt>HTTP Hosts</dt><dd class="mono-val">{{ analysis.http_hosts|join:", " }}</dd></div>
+        {% endif %}
+      </dl>
+
+      {% if analysis.endpoints %}
+        <div class="overflow-x-auto mt-5">
+          <table class="kai-table">
+            <thead><tr><th>Endpoint</th><th>Packets</th></tr></thead>
+            <tbody>
+              {% for endpoint in analysis.endpoints %}
+                <tr><td class="mono-val">{{ endpoint.address }}</td><td>{{ endpoint.packets }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      {% if analysis.conversations %}
+        <div class="overflow-x-auto mt-5">
+          <table class="kai-table">
+            <thead><tr><th>Source</th><th>Destination</th><th>Transport</th><th>Packets</th></tr></thead>
+            <tbody>
+              {% for conversation in analysis.conversations %}
+                <tr>
+                  <td class="mono-val">{{ conversation.source }}{% if conversation.source_port %}:{{ conversation.source_port }}{% endif %}</td>
+                  <td class="mono-val">{{ conversation.destination }}{% if conversation.destination_port %}:{{ conversation.destination_port }}{% endif %}</td>
+                  <td>{{ conversation.transport|upper }}</td>
+                  <td>{{ conversation.packets }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

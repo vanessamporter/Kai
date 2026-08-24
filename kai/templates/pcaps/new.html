@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Upload Capture</h1>
+
+  <form class="space-y-5" method="post" action="/pcaps" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% include "pcaps/_form_fields.html" with include_file_card=True %}
+
+    <div>
+      <input type="submit" value="Upload" class="kai-btn kai-btn-primary">
+    </div>
+  </form>
+</div>
+{% endblock %}

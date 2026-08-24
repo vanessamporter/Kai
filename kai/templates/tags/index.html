@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto" data-controller="tag-delete">
+  <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Tags</h1></div>
+  {% if user.is_staff %}
+    <form method="post" action="/tags" class="molly-card flex gap-2 mb-6">{% csrf_token %}
+      <input required type="text" name="tag[name]" aria-label="New tag name" placeholder="New tag name" class="flex-1">
+      <button type="submit" class="molly-btn molly-btn-primary">Add tag</button>
+    </form>
+  {% endif %}
+  <div class="molly-card overflow-x-auto" style="padding: 0;">
+    <table class="molly-table"><thead><tr><th>Name</th><th>Captures</th>{% if user.is_staff %}<th>Actions</th>{% endif %}</tr></thead>
+      <tbody>{% for tag in tags %}<tr data-controller="tag-row">
+        <td>
+          <span data-view-mode>{{ tag.name }}</span>
+          {% if user.is_staff %}<form data-edit-mode method="post" action="/tags/{{ tag.id }}" class="gap-2">{% csrf_token %}<input data-tag-row-target="input" data-action="keydown->tag-row#handleKeydown" name="tag[name]" value="{{ tag.name }}"><button class="molly-btn molly-btn-primary molly-btn-sm">Save</button><button type="button" class="molly-btn molly-btn-ghost molly-btn-sm" data-action="tag-row#cancelEdit">Cancel</button></form>{% endif %}
+        </td>
+        <td><a class="molly-count-link" href="/pcaps?tags={{ tag.name|urlencode }}">{{ tag.pcaps_count }}</a></td>
+        {% if user.is_staff %}<td><div class="molly-tag-actions"><button class="molly-btn molly-btn-ghost molly-btn-sm" data-action="tag-row#startEdit">Edit</button><button class="molly-btn molly-btn-danger molly-btn-sm" data-action="tag-delete#show" data-tag-delete-name-param="{{ tag.name }}" data-tag-delete-count-param="{{ tag.pcaps_count }}" data-tag-delete-url-param="/tags/{{ tag.id }}">Delete</button></div></td>{% endif %}
+      </tr>{% empty %}<tr><td colspan="3">No tags yet.</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  {% if user.is_staff %}<div class="molly-modal-overlay hidden" data-tag-delete-target="modal" data-action="click->tag-delete#hide"><div class="molly-modal" data-action="click->tag-delete#stopProp"><div class="molly-modal-header">Delete tag</div><p class="molly-modal-message" data-tag-delete-target="message"></p><div class="molly-modal-actions"><button class="molly-btn molly-btn-ghost" data-action="tag-delete#hide">Cancel</button><form method="post" data-tag-delete-target="form">{% csrf_token %}<input type="hidden" name="_method" value="delete"><button class="molly-btn molly-btn-danger-solid" type="submit">Delete</button></form></div></div></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+  <h1 class="text-2xl font-bold mb-6">Profile</h1>
+
+  <div class="kai-card space-y-5">
+    <div>
+      <label class="block text-sm font-medium text-gray-400">Email</label>
+      <p class="text-gray-100 mt-1">{{ user.email }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-400">API Token</label>
+      {% if new_api_token %}
+        <p class="text-sm text-gray-400">Copy this token now. Kai stores only its hash.</p>
+        <p class="kai-token mt-1">{{ new_api_token }}</p>
+      {% elif user.has_api_token %}
+        <p class="kai-token mt-1">{{ user.api_token_prefix }}…</p>
+        <p class="text-sm text-gray-500 mt-1">Expires {{ user.api_token_expires_at }}</p>
+      {% else %}
+        <p class="text-gray-500 text-sm mt-1">No token generated yet.</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <form class="button_to" method="post" action="/profile/regenerate_token"{% if user.has_api_token %} data-turbo-confirm="This will invalidate your current token. Continue?"{% endif %}>
+        {% csrf_token %}
+        <button class="kai-btn kai-btn-primary" type="submit">Generate new token</button>
+      </form>
+      {% if user.has_api_token %}<form class="button_to" method="post" action="/profile/revoke_token">{% csrf_token %}<button class="kai-btn kai-btn-danger" type="submit">Revoke token</button></form>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

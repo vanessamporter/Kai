@@ -1,0 +1,790 @@
+openapi: 3.0.3
+info:
+  title: Kai API
+  description: |
+    REST API for uploading, browsing, and searching pcap (packet capture) files
+    used in ICS/OT security research. Users tag and annotate uploads with metadata
+    (sector, platform, HMI, PLC, OT protocols, etc.) to make captures searchable.
+
+    **Authentication:** All capture endpoints—including browse, search, view,
+    and download—require a Bearer token obtained via `/auth/token`. Tag and
+    lookup-value reads remain public for autocomplete.
+  version: v1
+  contact:
+    name: Kai Project
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+tags:
+  - name: Authentication
+    description: Obtain an API token
+  - name: Pcaps
+    description: Upload, browse, search, and manage packet captures
+  - name: Tags
+    description: Browse tags applied to pcaps
+  - name: Lookup Values
+    description: Managed vocabularies for dropdown fields
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/token:
+    post:
+      tags: [Authentication]
+      summary: Obtain an API token
+      description: |
+        Exchange email and password for a new expiring API token. Issuance
+        revokes the prior token. Plaintext is returned only once; the server
+        stores a SHA-256 digest. Tokens can also be rotated from the Profile page.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: analyst@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret
+      responses:
+        "200":
+          description: Token returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      api_token:
+                        type: string
+                        example: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+                      expires_at:
+                        type: string
+                        format: date-time
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: Invalid email or password
+                status: 401
+
+  /pcaps:
+    get:
+      tags: [Pcaps]
+      summary: List and search pcaps
+      description: |
+        Returns a paginated list of pcaps. Results are ordered by creation date
+        (newest first, `created_at DESC`) unless a full-text search query `q` is
+        provided, in which case results are ranked by relevance.
+
+        All filters compose with AND semantics. Pagination returns 25 items per page.
+      parameters:
+        - name: q
+          in: query
+          description: |
+            Full-text search across filename, description, notes, event,
+            source_host, hmi, plc, and sector.
+          schema:
+            type: string
+          example: modbus
+        - name: tag
+          in: query
+          description: |
+            Filter by tag name(s). Supports a single value or an array.
+            Multiple tags use AND semantics — all specified tags must be present.
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          example: baseline
+        - name: sector
+          in: query
+          description: Exact match on sector
+          schema:
+            type: string
+          example: Water Treatment
+        - name: platform
+          in: query
+          description: Exact match on platform
+          schema:
+            type: string
+          example: Water Treatment
+        - name: location
+          in: query
+          description: Exact match on location
+          schema:
+            type: string
+          example: INL
+        - name: sponsor
+          in: query
+          description: Exact match on sponsor
+          schema:
+            type: string
+          example: CISA
+        - name: hmi
+          in: query
+          description: Exact match on HMI
+          schema:
+            type: string
+          example: AVEVA Intouch
+        - name: plc
+          in: query
+          description: Exact match on PLC
+          schema:
+            type: string
+          example: Allen Bradley ControlLogix 1756
+        - name: ot_protocol
+          in: query
+          description: |
+            Filter by OT protocol(s). Supports a single value or an array.
+            Uses array containment — the pcap must have all specified protocols.
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          example: Modbus
+        - name: baseline
+          in: query
+          description: "Filter by baseline status. Use `true` or `false`."
+          schema:
+            type: string
+            enum: ["true", "false"]
+        - name: event
+          in: query
+          description: Substring match on event name (case-insensitive)
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: Filter captures with `capture_start_time` on or after this date
+          schema:
+            type: string
+            format: date
+          example: "2025-01-01"
+        - name: to
+          in: query
+          description: Filter captures with `capture_start_time` on or before this date
+          schema:
+            type: string
+            format: date
+          example: "2025-12-31"
+        - name: page
+          in: query
+          description: Page number (default 1, 25 items per page)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        "200":
+          description: Paginated list of pcaps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Pcap"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+
+    post:
+      tags: [Pcaps]
+      summary: Upload a new pcap
+      description: |
+        Upload a pcap file with metadata. Uses `multipart/form-data` encoding.
+
+        Only `.pcap` and `.pcapng` files are accepted. The following fields are
+        auto-extracted from the file and cannot be set manually: `filename`,
+        `file_size`, `sha256`, `packet_count`, `capture_start_time`,
+        `capture_end_time`, `capture_duration_seconds`, `file_format`, `snaplen`,
+        `link_layer_type`, `average_packet_size`, `data_rate_bytes_per_sec`.
+
+        Tags are created automatically if they don't exist. Tag names are
+        normalized to lowercase.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Pcap file (`.pcap` or `.pcapng` only)"
+                description:
+                  type: string
+                  description: Description of the capture
+                notes:
+                  type: string
+                  description: Additional notes
+                event:
+                  type: string
+                  description: Event or exercise name
+                sector:
+                  type: string
+                  description: Industry sector
+                platform:
+                  type: string
+                  description: Test platform or facility
+                location:
+                  type: string
+                  description: Capture location
+                sponsor:
+                  type: string
+                  description: Sponsoring organization
+                baseline:
+                  type: boolean
+                  description: Whether this is a baseline capture
+                hmi:
+                  type: string
+                  description: HMI model or type
+                plc:
+                  type: string
+                  description: PLC model or type
+                "ot_protocols[]":
+                  type: array
+                  items:
+                    type: string
+                  description: "OT protocols observed (use bracket notation `ot_protocols[]` for multipart form encoding)"
+                source_host:
+                  type: string
+                  description: Source host or IP
+                network_interface:
+                  type: string
+                  description: Network interface used for capture
+                tags:
+                  description: "Tag names — comma-separated string or array of strings"
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+      responses:
+        "201":
+          description: Pcap created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Pcap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missing_file:
+                  summary: No file provided
+                  value:
+                    error: File is required
+                    status: 422
+                invalid_format:
+                  summary: Invalid file format
+                  value:
+                    error: "File must be .pcap or .pcapng"
+                    status: 422
+
+  /pcaps/{id}:
+    get:
+      tags: [Pcaps]
+      summary: Get a pcap
+      parameters:
+        - $ref: "#/components/parameters/PcapId"
+      responses:
+        "200":
+          description: Pcap details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Pcap"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      tags: [Pcaps]
+      summary: Update a pcap
+      description: |
+        Update metadata and tags for an existing pcap. The file itself cannot
+        be replaced.
+
+        **Tags are fully replaced on update.** Send the complete desired tag
+        list, not a diff.
+      parameters:
+        - $ref: "#/components/parameters/PcapId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                notes:
+                  type: string
+                event:
+                  type: string
+                sector:
+                  type: string
+                platform:
+                  type: string
+                location:
+                  type: string
+                sponsor:
+                  type: string
+                baseline:
+                  type: boolean
+                hmi:
+                  type: string
+                plc:
+                  type: string
+                ot_protocols:
+                  type: array
+                  items:
+                    type: string
+                source_host:
+                  type: string
+                network_interface:
+                  type: string
+                tags:
+                  description: "Tag names — replaces all existing tags"
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Pcap updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Pcap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+    delete:
+      tags: [Pcaps]
+      summary: Delete a pcap
+      description: Permanently deletes the pcap record and its attached file.
+      parameters:
+        - $ref: "#/components/parameters/PcapId"
+      responses:
+        "204":
+          description: Pcap deleted (no content)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /pcaps/{id}/download:
+    get:
+      tags: [Pcaps]
+      summary: Download a pcap file
+      description: Downloads the raw pcap file as a binary attachment.
+      parameters:
+        - $ref: "#/components/parameters/PcapId"
+      responses:
+        "200":
+          description: Binary pcap file
+          content:
+            application/vnd.tcpdump.pcap:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: 'Attachment with original filename (e.g. `attachment; filename="capture.pcap"`)'
+              schema:
+                type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /tags:
+    get:
+      tags: [Tags]
+      summary: List tags
+      description: |
+        Returns up to 20 tag names sorted alphabetically. Use `q` to search
+        by substring.
+      security: []
+      parameters:
+        - name: q
+          in: query
+          description: Case-insensitive substring search on tag name
+          schema:
+            type: string
+          example: mod
+      responses:
+        "200":
+          description: List of tag names
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: ["anomaly", "baseline", "modbus", "water"]
+
+  /lookup_values:
+    get:
+      tags: [Lookup Values]
+      summary: List lookup values
+      description: |
+        Returns lookup values sorted by position then alphabetically.
+
+        Available categories: `sector`, `platform`, `location`, `sponsor`,
+        `hmi`, `plc`, `ot_protocol`.
+      security: []
+      parameters:
+        - name: category
+          in: query
+          description: |
+            Filter by category. Known categories: `sector`, `platform`,
+            `location`, `sponsor`, `hmi`, `plc`, `ot_protocol`.
+          schema:
+            type: string
+          example: sector
+        - name: q
+          in: query
+          description: Case-insensitive substring search on value
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of lookup values
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Modbus", "Modbus TCP", "DNP3", "Profinet"]
+
+    post:
+      tags: [Lookup Values]
+      summary: Create a lookup value
+      description: |
+        Add a new value to a lookup category. The value is automatically assigned
+        the next position in the category.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, value]
+              properties:
+                category:
+                  type: string
+                  description: |
+                    Category name. Known categories: `sector`, `platform`,
+                    `location`, `sponsor`, `hmi`, `plc`, `ot_protocol`.
+                  example: plc
+                value:
+                  type: string
+                  description: The value to add
+                  example: Siemens S7-1200
+      responses:
+        "201":
+          description: Lookup value created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      category:
+                        type: string
+                        example: plc
+                      value:
+                        type: string
+                        example: Siemens S7-1200
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Obtain a token via `POST /api/v1/auth/token`, then pass it in the
+        `Authorization: Bearer <token>` header.
+
+  parameters:
+    PcapId:
+      name: id
+      in: path
+      required: true
+      description: Pcap ID
+      schema:
+        type: integer
+      example: 42
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: Unauthorized
+            status: 401
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: Not found
+            status: 404
+
+    UnprocessableEntity:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: "File must be .pcap or .pcapng"
+            status: 422
+
+  schemas:
+    Pcap:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier
+          example: 42
+        filename:
+          type: string
+          description: Original uploaded filename
+          example: water-treatment-modbus.pcap
+        description:
+          type: string
+          nullable: true
+          description: User-provided description
+          example: Modbus traffic during normal operations
+        notes:
+          type: string
+          nullable: true
+          description: Additional notes
+        event:
+          type: string
+          nullable: true
+          description: Event or exercise name
+          example: CISA Exercise 2025
+        sector:
+          type: string
+          nullable: true
+          description: Industry sector
+          example: Water Treatment
+        platform:
+          type: string
+          nullable: true
+          description: Test platform or facility
+          example: Water Treatment
+        location:
+          type: string
+          nullable: true
+          description: Capture location
+          example: INL
+        sponsor:
+          type: string
+          nullable: true
+          description: Sponsoring organization
+          example: CISA
+        baseline:
+          type: boolean
+          description: Whether this is a baseline capture
+          default: false
+          example: true
+        hmi:
+          type: string
+          nullable: true
+          description: HMI model or type
+          example: AVEVA Intouch
+        plc:
+          type: string
+          nullable: true
+          description: PLC model or type
+          example: Allen Bradley ControlLogix 1756
+        ot_protocols:
+          type: array
+          items:
+            type: string
+          description: OT protocols observed
+          example: ["Modbus", "Modbus TCP"]
+        source_host:
+          type: string
+          nullable: true
+          description: Source host or IP
+          example: "192.168.1.10"
+        network_interface:
+          type: string
+          nullable: true
+          description: Network interface used for capture
+          example: eth0
+        file_size:
+          type: integer
+          nullable: true
+          description: File size in bytes
+          example: 1048576
+        sha256:
+          type: string
+          nullable: true
+          description: SHA-256 hash of the file
+          example: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        packet_count:
+          type: integer
+          nullable: true
+          description: Number of packets (auto-extracted)
+          example: 15234
+        capture_start_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: First packet timestamp (auto-extracted)
+          example: "2025-03-15T14:30:00.000Z"
+        capture_end_time:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last packet timestamp (auto-extracted)
+          example: "2025-03-15T15:45:00.000Z"
+        capture_duration_seconds:
+          type: number
+          format: float
+          nullable: true
+          description: Capture duration in seconds (auto-extracted)
+          example: 4500.0
+        file_format:
+          type: string
+          nullable: true
+          description: "File format, e.g. pcap or pcapng (auto-extracted)"
+          example: pcap
+        snaplen:
+          type: integer
+          nullable: true
+          description: Snapshot length (auto-extracted)
+          example: 65535
+        link_layer_type:
+          type: string
+          nullable: true
+          description: Link layer type (auto-extracted)
+          example: ETHERNET
+        average_packet_size:
+          type: number
+          format: float
+          nullable: true
+          description: Average packet size in bytes (auto-extracted)
+          example: 68.8
+        data_rate_bytes_per_sec:
+          type: number
+          format: float
+          nullable: true
+          description: Data rate in bytes per second (auto-extracted)
+          example: 233.0
+        analysis_status:
+          type: string
+          nullable: true
+          enum: [pending, running, complete, failed]
+          description: Background packet-analysis state
+        tags:
+          type: array
+          items:
+            type: string
+          description: Tag names attached to this pcap
+          example: ["modbus", "baseline", "water"]
+        uploader:
+          type: string
+          description: Email of the user who uploaded the file
+          example: analyst@example.com
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-03-16T10:00:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-03-16T10:00:00.000Z"
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 5
+        total_count:
+          type: integer
+          description: Total number of records
+          example: 112
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        status:
+          type: integer
+          description: HTTP status code

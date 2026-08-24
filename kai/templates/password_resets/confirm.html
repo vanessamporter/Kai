@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<div class="max-w-md mx-auto mt-8"><div class="kai-auth-card"><h1 class="text-lg font-bold mb-4">Choose a new password</h1>{% if validlink %}<form method="post" class="space-y-4">{% csrf_token %}{{ form.as_p }}<button class="kai-btn kai-btn-primary" type="submit">Set password</button></form>{% else %}<p>This reset link is invalid or has expired.</p>{% endif %}</div></div>{% endblock %}

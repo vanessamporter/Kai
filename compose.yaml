@@ -1,0 +1,70 @@
+services:
+  app:
+    image: kai:local
+    build:
+      context: .
+      dockerfile: Containerfile
+    ports:
+      - "3022:3022"
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    pids_limit: 256
+    volumes:
+      - pcap_storage:/app/storage
+    environment:
+      DATABASE_URL: postgres://kai:kai@db/kai_production
+      SECRET_KEY_BASE: dev-only-secret-key-base-change-in-production
+      KAI_STORAGE_PATH: /app/storage
+      DJANGO_DEBUG: "1"
+      DJANGO_SECURE_COOKIES: "0"
+      ALLOW_PUBLIC_SIGNUP: "1"
+    depends_on:
+      db:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3022/up')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    image: kai:local
+    command: ["worker"]
+    security_opt:
+      - label=disable
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    pids_limit: 64
+    volumes:
+      - pcap_storage:/app/storage:ro
+    environment:
+      DATABASE_URL: postgres://kai:kai@db/kai_production
+      KAI_STORAGE_PATH: /app/storage
+      SECRET_KEY_BASE: dev-only-secret-key-base-change-in-production
+    depends_on:
+      app:
+        condition: service_healthy
+
+  db:
+    image: docker.io/library/postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: kai
+      POSTGRES_PASSWORD: kai
+      POSTGRES_DB: kai_production
+
+volumes:
+  pcap_storage:
+  pg_data:

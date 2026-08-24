@@ -1,0 +1,37 @@
+[project]
+name = "kai"
+version = "1.0.0"
+description = "Kai - pcap library for ICS/OT security research (Django)"
+requires-python = ">=3.12"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+dependencies = [
+    "django~=5.2",
+    "psycopg[binary]~=3.2",
+    "bcrypt>=4.1",
+    "gunicorn>=23.0",
+    "whitenoise>=6.8",
+    "django-auth-ldap>=5.2,<6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-django>=4.9",
+    "pytest-github-actions-annotate-failures>=0.4.2",
+    "ruff>=0.8",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["kai/migrations"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+# Django's class Meta / class-attribute conventions trip RUF012 everywhere
+ignore = ["RUF012"]

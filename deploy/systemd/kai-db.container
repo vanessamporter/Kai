@@ -1,0 +1,12 @@
+[Container]
+ContainerName=kai-db
+Image=docker.io/library/postgres:16-alpine
+Volume=kai-pg-data.volume:/var/lib/postgresql/data
+EnvironmentFile=/etc/kai/db.env
+Network=kai.network
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
