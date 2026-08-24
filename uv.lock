@@ -160,7 +160,7 @@ requires-dist = [
     { name = "django", specifier = "~=5.2" },
     { name = "django-auth-ldap", specifier = ">=5.2,<6" },
     { name = "gunicorn", specifier = ">=23.0" },
-    { name = "psycopg", extras = ["binary"], specifier = "~=3.2" },
+    { name = "psycopg", extras = ["binary"], specifier = "~=3.3" },
     { name = "whitenoise", specifier = ">=6.8" },
 ]
 
