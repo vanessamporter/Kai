@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.hashers import check_password
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex, OpClass
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector, SearchVectorField
@@ -66,6 +67,18 @@ class User(AbstractBaseUser):
 
     def __str__(self):
         return self.email
+
+    def check_password(self, raw_password):
+        encoded = self.password
+        if encoded.startswith(("$2a$", "$2b$", "$2y$")):
+            encoded = f"bcrypt${encoded}"
+
+        def setter(password):
+            self.set_password(password)
+            self._password = None
+            self.save(update_fields=["password", "updated_at"])
+
+        return check_password(raw_password, encoded, setter)
 
     @property
     def has_api_token(self):

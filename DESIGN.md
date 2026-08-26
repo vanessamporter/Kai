@@ -27,6 +27,7 @@ descriptor, and core-dump limits. Failures retry three times and do not block up
 - Django CSRF and output escaping
 - Nonce-based CSP and restrictive browser headers
 - PostgreSQL-backed authentication throttling
+- Legacy Rails bcrypt digest compatibility
 - Signed password-reset links
 - Hashed, expiring, revocable API tokens
 - Security-event audit records

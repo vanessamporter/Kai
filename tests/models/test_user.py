@@ -57,6 +57,16 @@ def test_password_digest_is_bcrypt(settings, db):
     assert user.check_password("password123")
 
 
+def test_authenticates_with_legacy_rails_bcrypt_digest(settings, db):
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.BCryptPasswordHasher"]
+    user = User.objects.create_user(email="legacy@example.com", password="password123")
+    user.password = user.password.removeprefix("bcrypt$")
+    user.save(update_fields=["password"])
+
+    assert user.check_password("password123")
+    assert not user.check_password("wrongpassword")
+
+
 def test_has_many_pcaps(user):
     pcap = user.pcaps.create(filename="test.pcap")
     assert pcap in user.pcaps.all()

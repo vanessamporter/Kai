@@ -16,4 +16,5 @@ fi
 
 python manage.py migrate --noinput
 exec gunicorn config.wsgi --bind 0.0.0.0:3022 \
-  --workers "${WEB_CONCURRENCY:-3}" --access-logfile - --error-logfile -
+  --workers "${WEB_CONCURRENCY:-3}" --access-logfile - --error-logfile - \
+  --no-control-socket
