@@ -59,10 +59,17 @@ def signup_view(request):
             return render(
                 request, "registrations/new.html", {"errors": errors, "email": email}, status=422
             )
-        user = User.objects.create_user(email=email, password=password)
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            is_active=not settings.REQUIRE_SIGNUP_APPROVAL,
+        )
         clear_failures("signup", request)
+        audit(request, "signup_requested", user=user)
+        if settings.REQUIRE_SIGNUP_APPROVAL:
+            messages.success(request, "Account request submitted for administrator approval.")
+            return redirect("/login")
         auth_login(request, user)
-        audit(request, "signup", user=user)
         messages.success(request, "Account created successfully.")
         return redirect("/pcaps")
     return render(request, "registrations/new.html")

@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from kai.views import api, auth, lookup_values, misc, pcaps, profiles, tags
+from kai.views import api, auth, lookup_values, misc, pcaps, profiles, tags, users
 
 urlpatterns = [
     path("up", misc.health, name="health"),
@@ -17,6 +17,8 @@ urlpatterns = [
     path("tags", tags.collection, name="tags"),
     path("tags.json", tags.index_json),
     path("tags/<int:pk>", tags.member, name="tag"),
+    path("users", users.collection, name="users"),
+    path("users/<int:pk>/approve", users.approve, name="approve_user"),
     path("lookup_values", lookup_values.collection, name="lookup_values"),
     # API documentation
     path("api/docs", misc.api_docs, name="api_docs"),

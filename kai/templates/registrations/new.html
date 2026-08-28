@@ -19,7 +19,8 @@
   </div>
 
   <div class="kai-auth-card">
-    <h1 class="text-lg font-bold mb-6">Create account</h1>
+    <h1 class="text-lg font-bold mb-3">{% if require_signup_approval %}Request access{% else %}Create account{% endif %}</h1>
+    {% if require_signup_approval %}<p class="text-sm text-gray-500 mb-6">Choose your login details. An administrator must approve your request before you can sign in.</p>{% endif %}
 
     <form class="space-y-4" method="post" action="/signup">
       {% csrf_token %}
@@ -47,7 +48,7 @@
       </div>
 
       <div>
-        <input type="submit" value="Create account" class="kai-btn kai-btn-primary w-full justify-center">
+        <input type="submit" value="{% if require_signup_approval %}Request access{% else %}Create account{% endif %}" class="kai-btn kai-btn-primary w-full justify-center">
       </div>
     </form>
   </div>

@@ -14,5 +14,8 @@ staticfiles/
 # Uploaded pcap files in development
 storage/
 
+# Database and capture backup artifacts
+backups/
+
 # Ignore all environment files.
 /.env*

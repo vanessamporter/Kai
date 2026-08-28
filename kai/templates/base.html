@@ -46,8 +46,16 @@
                   </linearGradient>
                 </defs>
                 <path d="M4 51 25 15l12 20 8-13 15 29Z" fill="url(#mountainGrad)" />
-                <path d="m25 15-8 14 8-5 5 6 3-2Z" fill="white" opacity="0.95" />
-                <path d="m45 22-6 10 6-4 4 5 3-1Z" fill="white" opacity="0.9" />
+                <path class="kai-snowcap kai-snowcap-primary" d="m25 15-8 14 8-5 5 6 3-2Z" fill="white" />
+                <path class="kai-snowcap kai-snowcap-secondary" d="m45 22-6 10 6-4 4 5 3-1Z" fill="white" />
+                <g class="kai-climber" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="15" cy="31" r="1.4" fill="currentColor" stroke="none" />
+                  <path d="m15 33 1 4m-1-2-2 2m2-2 2-2m-1 4-1 3m1-3 2 2" />
+                </g>
+                <g class="kai-summit-flag" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m29 23 2-14" fill="none" stroke="currentColor" stroke-width="1.3" />
+                  <path d="m31 9 9 3-9 3Z" fill="currentColor" stroke="none" />
+                </g>
                 <path d="M4 51h56" stroke="var(--m-dsu-gray-light)" stroke-width="3" stroke-linecap="round" />
               </svg>
               <span class="kai-logo-text">kai</span>
@@ -56,6 +64,7 @@
               <a href="/pcaps" class="kai-nav-link">Search</a>
               <a href="/pcaps/new" class="kai-nav-link">Upload</a>
               <a href="/tags" class="kai-nav-link">Tags</a>
+              {% if user.is_staff %}<a href="/users" class="kai-nav-link">Users</a>{% endif %}
             </div>
           </div>
           <div class="flex items-center gap-3">

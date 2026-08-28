@@ -37,10 +37,17 @@ export default class extends Controller {
     this._onInput = this.handleInput.bind(this)
     this._onPaste = this.handlePaste.bind(this)
     this._onFocus = this.handleFocus.bind(this)
+    this._onBlur = this.handleBlur.bind(this)
     this.inputTarget.addEventListener("keydown", this._onKeyDown)
     this.inputTarget.addEventListener("input", this._onInput)
     this.inputTarget.addEventListener("paste", this._onPaste)
     this.inputTarget.addEventListener("focus", this._onFocus)
+    this.inputTarget.addEventListener("blur", this._onBlur)
+
+    // Preserve text users typed even if they save without pressing Enter.
+    this.form = this.element.closest("form")
+    this._onSubmit = this.commitPendingTag.bind(this)
+    if (this.form) this.form.addEventListener("submit", this._onSubmit)
 
     // Close dropdown on outside click
     this._onClickOutside = (e) => {
@@ -54,6 +61,12 @@ export default class extends Controller {
 
   disconnect() {
     document.removeEventListener("mousedown", this._onClickOutside)
+    this.inputTarget.removeEventListener("keydown", this._onKeyDown)
+    this.inputTarget.removeEventListener("input", this._onInput)
+    this.inputTarget.removeEventListener("paste", this._onPaste)
+    this.inputTarget.removeEventListener("focus", this._onFocus)
+    this.inputTarget.removeEventListener("blur", this._onBlur)
+    if (this.form) this.form.removeEventListener("submit", this._onSubmit)
     clearTimeout(this.debounceTimer)
   }
 
@@ -110,6 +123,15 @@ export default class extends Controller {
 
   handleFocus() {
     this._fetchSuggestions(this.inputTarget.value.trim())
+  }
+
+  handleBlur() {
+    this.commitPendingTag()
+  }
+
+  commitPendingTag() {
+    const value = this.inputTarget.value.trim()
+    if (value) this._addTag(value)
   }
 
   // --- Tag management ---

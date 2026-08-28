@@ -10,6 +10,7 @@ QUADLET_DIR   ?= /etc/containers/systemd
 IMAGE         ?= kai:latest
 CONTAINERFILE ?= Containerfile
 PORT          ?= 3022
+BACKUP_DIR    ?= $(CURDIR)/backups
 
 PODMAN        ?= podman
 UV            ?= uv
@@ -24,6 +25,7 @@ TAILWINDCSS   ?= tailwindcss
         server worker shell \
         test lint lint-fix format \
         collectstatic tailwind-build \
+        backup \
         container-build container-install container-run container-clean \
         compose-up compose-down \
         quadlet deploy
@@ -45,6 +47,10 @@ db-migrate: ## Run pending database migrations
 	${MANAGE} migrate
 
 db-prepare: db-migrate ## Prepare the database
+
+backup: ## Back up PostgreSQL and uploaded pcaps into BACKUP_DIR (default: ./backups)
+	mkdir -p "${BACKUP_DIR}"
+	${PODMAN} compose run --rm --no-deps -v "${BACKUP_DIR}:/backups" app backup /backups
 
 ## --- Run -------------------------------------------------------------------
 

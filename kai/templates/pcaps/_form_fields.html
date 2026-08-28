@@ -48,9 +48,7 @@
   <div class="kai-card-header">Classification</div>
   <div class="grid grid-cols-2 gap-4">
     {% include "pcaps/_form_lookup_select.html" with field="sector" label="Sector" options=sectors selected=pcap.sector %}
-    {% include "pcaps/_form_lookup_select.html" with field="platform" label="Platform" options=platforms selected=pcap.platform %}
     {% include "pcaps/_form_lookup_select.html" with field="location" label="Location" options=locations selected=pcap.location %}
-    {% include "pcaps/_form_lookup_select.html" with field="sponsor" label="Sponsor" options=sponsors selected=pcap.sponsor %}
     {% include "pcaps/_form_lookup_select.html" with field="hmi" label="HMI" options=hmis selected=pcap.hmi %}
     {% include "pcaps/_form_lookup_select.html" with field="plc" label="PLC" options=plcs selected=pcap.plc %}
   </div>

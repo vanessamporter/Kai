@@ -81,3 +81,10 @@ def test_destroys_pcaps_when_destroyed(user):
 def test_strips_whitespace_from_email(make_user):
     user = make_user(email="  spaces@example.com  ")
     assert user.email == "spaces@example.com"
+
+
+def test_create_superuser_creates_active_staff_account():
+    user = User.objects.create_superuser(email="admin@example.com", password="password123")
+
+    assert user.is_active
+    assert user.is_staff

@@ -2,19 +2,19 @@
 {% load kai_helpers %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-  <div class="flex justify-between items-start mb-6">
-    <div>
+<div class="max-w-5xl mx-auto kai-pcap-detail">
+  <div class="kai-pcap-heading mb-6">
+    <div class="min-w-0">
       <h1 class="text-2xl font-bold">{{ pcap.filename }}</h1>
       {% if pcap.tags.all %}
         <div class="flex flex-wrap gap-1 mt-2">
           {% for tag in pcap.tags.all %}
-            <span class="kai-tag">{{ tag.name }}</span>
+            <a class="kai-tag kai-tag-link" href="/pcaps?tags={{ tag.name|urlencode }}">{{ tag.name }}</a>
           {% endfor %}
         </div>
       {% endif %}
     </div>
-    <div class="flex gap-2 items-center">
+    <div class="kai-pcap-actions">
       <a href="/pcaps/{{ pcap.id }}/download" class="kai-btn kai-btn-primary">Download</a>
       {% if user.is_staff or user == pcap.user %}
         <a href="/pcaps/{{ pcap.id }}/edit" class="kai-btn kai-btn-ghost">Edit</a>
@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="kai-pcap-summary">
     <div class="kai-card">
       <div class="kai-card-header">Metadata</div>
       <dl class="kai-dl space-y-2">
@@ -49,41 +49,39 @@
       </dl>
     </div>
 
-    <div class="space-y-6">
+    <div class="kai-card">
+      <div class="kai-card-header">File Info</div>
+      <dl class="kai-dl space-y-2">
+        <div class="flex">
+          <dt>Size</dt>
+          <dd class="mono-val">{{ pcap.file_size|human_size }}</dd>
+        </div>
+        <div class="flex">
+          <dt>SHA-256</dt>
+          <dd class="mono-val text-xs break-all">{{ pcap.sha256|default_if_none:"" }}</dd>
+        </div>
+        {% if pcap.file_format %}
+          <div class="flex">
+            <dt>Format</dt>
+            <dd class="mono-val">{{ pcap.file_format }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    {% if has_capture_details %}
       <div class="kai-card">
-        <div class="kai-card-header">File Info</div>
+        <div class="kai-card-header">Capture Details</div>
         <dl class="kai-dl space-y-2">
-          <div class="flex">
-            <dt>Size</dt>
-            <dd class="mono-val">{{ pcap.file_size|human_size }}</dd>
-          </div>
-          <div class="flex">
-            <dt>SHA-256</dt>
-            <dd class="mono-val text-xs break-all">{{ pcap.sha256|default_if_none:"" }}</dd>
-          </div>
-          {% if pcap.file_format %}
+          {% for label, value in capture_pairs %}
             <div class="flex">
-              <dt>Format</dt>
-              <dd class="mono-val">{{ pcap.file_format }}</dd>
+              <dt>{{ label }}</dt>
+              <dd class="mono-val">{{ value }}</dd>
             </div>
-          {% endif %}
+          {% endfor %}
         </dl>
       </div>
-
-      {% if has_capture_details %}
-        <div class="kai-card">
-          <div class="kai-card-header">Capture Details</div>
-          <dl class="kai-dl space-y-2">
-            {% for label, value in capture_pairs %}
-              <div class="flex">
-                <dt>{{ label }}</dt>
-                <dd class="mono-val">{{ value }}</dd>
-              </div>
-            {% endfor %}
-          </dl>
-        </div>
-      {% endif %}
-    </div>
+    {% endif %}
   </div>
 
   {% if analysis_status and analysis_status != "complete" %}
@@ -91,7 +89,7 @@
   {% endif %}
 
   {% if analysis %}
-    <div class="kai-card mt-6">
+    <div class="kai-card kai-pcap-analysis">
       <div class="kai-card-header">Automatic Tshark Analysis</div>
       <dl class="kai-dl space-y-3">
         <div class="flex">

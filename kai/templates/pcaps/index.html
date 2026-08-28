@@ -30,11 +30,9 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="grid grid-cols-2 gap-4">
     {% include "pcaps/_lookup_select.html" with field="sector" label="Sector" options=sectors %}
-    {% include "pcaps/_lookup_select.html" with field="platform" label="Platform" options=platforms %}
     {% include "pcaps/_lookup_select.html" with field="location" label="Location" options=locations %}
-    {% include "pcaps/_lookup_select.html" with field="sponsor" label="Sponsor" options=sponsors %}
   </div>
 
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -106,9 +104,11 @@
               <td>{{ pcap.event|default_if_none:"" }}</td>
               <td>{{ pcap.sector|default_if_none:"" }}</td>
               <td>
-                {% for tag in pcap.tags.all %}
-                  <span class="kai-tag">{{ tag.name }}</span>
-                {% endfor %}
+                <div class="kai-table-tags">
+                  {% for tag in pcap.tags.all %}
+                    <a class="kai-tag kai-tag-link" href="/pcaps?tags={{ tag.name|urlencode }}" data-turbo-frame="_top">{{ tag.name }}</a>
+                  {% endfor %}
+                </div>
               </td>
               <td>{% if pcap.baseline %}Yes{% endif %}</td>
               <td class="mono">{{ pcap.file_size|human_size }}</td>

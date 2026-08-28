@@ -88,7 +88,12 @@ def test_tags_index_renders_html_management_page(client, logged_in):
 def test_tags_index_html_shows_pcap_counts(client, logged_in):
     pcap = Pcap.objects.create(filename="test.pcap", user=logged_in)
     pcap.tags.add(Tag.objects.get(name="modbus"))
-    assert client.get("/tags").status_code == 200
+    response = client.get("/tags")
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'href="/pcaps?tags=modbus"' in content
+    assert 'data-action="tag-row#startEdit"' in content
+    assert "molly-" not in content
 
 
 def test_create_tag(client, logged_in):

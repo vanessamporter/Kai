@@ -14,6 +14,9 @@
 Login is required for every capture operation. Owners manage their captures;
 staff can manage all captures, tags, and lookup values. Public endpoints are
 limited to authentication, health, API documentation, and autocomplete data.
+For group deployments, self-registration creates an inactive account request;
+staff approve requests or create active accounts from the Users page. The first
+staff account is bootstrapped with Django's `createsuperuser` command.
 
 ## Uploads
 
@@ -44,3 +47,7 @@ Core tables: `users`, `pcaps`, `tags`, `pcap_tags`, `lookup_values`,
 `analysis_jobs`, `auth_failures`, and `security_events`. Lookup values start empty.
 
 The API contract is `public/openapi.yaml`.
+
+PostgreSQL and capture files are backed up separately. `bin/backup` creates a
+consistent database dump, a capture archive, and SHA-256 checksums; deployments
+must copy these artifacts off-host and test restores.

@@ -5,7 +5,7 @@
   background-color: var(--m-input-bg);
   border: 1px solid var(--m-input-border);
   color: var(--m-text);
-  border-radius: 0.375rem;
+  border-radius: 0;
   padding: 0.5rem 0.625rem;
   min-height: 2.375rem;
   font-size: 0.875rem;

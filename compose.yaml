@@ -24,6 +24,7 @@ services:
       DJANGO_DEBUG: "1"
       DJANGO_SECURE_COOKIES: "0"
       ALLOW_PUBLIC_SIGNUP: "1"
+      REQUIRE_SIGNUP_APPROVAL: "1"
     depends_on:
       db:
         condition: service_started
@@ -51,6 +52,7 @@ services:
       DATABASE_URL: postgres://kai:kai@db/kai_production
       KAI_STORAGE_PATH: /app/storage
       SECRET_KEY_BASE: dev-only-secret-key-base-change-in-production
+      REQUIRE_SIGNUP_APPROVAL: "1"
     depends_on:
       app:
         condition: service_healthy

@@ -54,3 +54,15 @@ def test_post_signup_logs_in_the_new_user(client):
     # Verify we're logged in by accessing an auth-required page
     response = client.get("/profile")
     assert response.status_code == 200
+
+
+def test_signup_requires_staff_approval_when_configured(client, settings):
+    settings.REQUIRE_SIGNUP_APPROVAL = True
+
+    response = client.post("/signup", signup_params("pending@example.com"))
+
+    user = User.objects.get(email="pending@example.com")
+    assert response.status_code == 302
+    assert response.url == "/login"
+    assert not user.is_active
+    assert client.get("/profile").status_code == 302

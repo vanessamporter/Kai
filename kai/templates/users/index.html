@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <header class="kai-page-heading mb-6">
+    <div><h1 class="text-3xl font-bold">Users</h1><p>Approve access requests or create an account directly.</p></div>
+  </header>
+
+  <form method="post" action="/users" class="kai-card space-y-4 mb-6">{% csrf_token %}
+    <div class="kai-card-header">Create account</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block" for="user_email">Email</label><input required class="mt-1 block w-full" type="email" name="user[email]" id="user_email"></div>
+      <div><label class="block" for="user_password">Temporary password</label><input required class="mt-1 block w-full" type="password" name="user[password]" id="user_password"></div>
+      <div><label class="block" for="user_password_confirmation">Confirm password</label><input required class="mt-1 block w-full" type="password" name="user[password_confirmation]" id="user_password_confirmation"></div>
+      <div class="flex items-center gap-2"><input type="checkbox" name="user[is_staff]" id="user_is_staff" value="1"><label for="user_is_staff" style="text-transform:none; letter-spacing:normal;">Administrator</label></div>
+    </div>
+    <button class="kai-btn kai-btn-primary" type="submit">Create account</button>
+  </form>
+
+  <div class="kai-card overflow-x-auto" style="padding:0;">
+    <table class="kai-table">
+      <thead><tr><th>Email</th><th>Status</th><th>Role</th><th>Created</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for account in users %}
+          <tr>
+            <td>{{ account.email }}</td>
+            <td>{% if account.is_active %}Active{% else %}Pending{% endif %}</td>
+            <td>{% if account.is_staff %}Administrator{% else %}Member{% endif %}</td>
+            <td>{{ account.created_at|date:"Y-m-d" }}</td>
+            <td>{% if not account.is_active %}<form method="post" action="/users/{{ account.id }}/approve">{% csrf_token %}<button class="kai-btn kai-btn-primary kai-btn-sm" type="submit">Approve</button></form>{% else %}—{% endif %}</td>
+          </tr>
+        {% empty %}<tr><td colspan="5">No users yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

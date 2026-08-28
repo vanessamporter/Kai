@@ -36,5 +36,6 @@ def csp_nonce(request):
     return {
         "csp_nonce": getattr(request, "csp_nonce", ""),
         "allow_public_signup": settings.ALLOW_PUBLIC_SIGNUP,
+        "require_signup_approval": settings.REQUIRE_SIGNUP_APPROVAL,
         "source_code_url": settings.SOURCE_CODE_URL,
     }

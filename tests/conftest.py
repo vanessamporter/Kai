@@ -14,6 +14,7 @@ def media_root(settings, tmp_path):
     # uncollected staticfiles/ directory.
     settings.WHITENOISE_AUTOREFRESH = True
     settings.ALLOW_PUBLIC_SIGNUP = True
+    settings.REQUIRE_SIGNUP_APPROVAL = False
     settings.SESSION_COOKIE_SECURE = False
     settings.CSRF_COOKIE_SECURE = False
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

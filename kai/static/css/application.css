@@ -231,12 +231,109 @@ main > :first-child {
 
 .kai-logo-text::after {
   content: '_';
-  animation: blink 1.2s step-end infinite;
+  display: inline-block;
+  margin-left: 0.05em;
   color: var(--m-cursor-color);
+  opacity: 0.8;
 }
 
-@keyframes blink {
-  50% { opacity: 0; }
+.kai-snowcap {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: kai-snow-glint 3.2s ease-in-out infinite;
+}
+
+.kai-snowcap-primary {
+  animation-delay: -0.4s;
+}
+
+.kai-snowcap-secondary {
+  animation-delay: -1.8s;
+}
+
+.kai-climber {
+  color: #f59e0b;
+  transform-box: view-box;
+  transform-origin: center;
+  animation: kai-climb 7s ease-in-out infinite;
+  filter: drop-shadow(0 0 1px #4a2600) drop-shadow(0 0 2px rgba(245, 158, 11, 0.7));
+}
+
+.kai-summit-flag {
+  color: #a9683a;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: kai-plant-flag 7s ease-in-out infinite;
+  filter: drop-shadow(0 0 1px rgba(53, 27, 12, 0.95)) drop-shadow(0 0 2px rgba(169, 104, 58, 0.6));
+}
+
+@keyframes kai-snow-glint {
+  0%, 100% {
+    opacity: 0.82;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  45% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95));
+  }
+}
+
+@keyframes kai-climb {
+  0% {
+    opacity: 0;
+    transform: translate(-5px, 8px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-5px, 8px) rotate(-4deg);
+  }
+  38% {
+    transform: translate(0, 0) rotate(4deg);
+  }
+  68% {
+    opacity: 1;
+    transform: translate(9px, -14px) rotate(-4deg);
+  }
+  88% {
+    opacity: 1;
+    transform: translate(9px, -14px) rotate(3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(9px, -14px);
+  }
+}
+
+@keyframes kai-plant-flag {
+  0%, 68% {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  76%, 92% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kai-snowcap,
+  .kai-climber,
+  .kai-summit-flag {
+    animation: none;
+  }
+
+  .kai-snowcap {
+    opacity: 0.95;
+  }
+
+  .kai-summit-flag {
+    opacity: 1;
+  }
 }
 
 .kai-auth-logo {
@@ -323,7 +420,7 @@ main > :first-child {
 .kai-card {
   background: var(--m-surface);
   border: 1px solid var(--m-border);
-  border-radius: 0.125rem 1.25rem 0.125rem 1.25rem;
+  border-radius: 0;
   padding: 1.25rem;
   backdrop-filter: var(--m-card-blur);
   box-shadow: var(--m-card-shadow);
@@ -379,7 +476,7 @@ textarea {
   background-color: var(--m-input-bg) !important;
   border: 1px solid var(--m-input-border) !important;
   color: var(--m-input-text) !important;
-  border-radius: 0.125rem 0.7rem 0.125rem 0.7rem;
+  border-radius: 0;
   padding: 0.5rem 0.625rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -514,26 +611,11 @@ label {
 }
 
 .kai-browser-layout {
-  display: grid;
-  grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 2.2fr);
-  align-items: start;
-  gap: 1.5rem;
+  display: block;
 }
 
 .kai-browser-layout .kai-search-panel {
-  position: sticky;
-  top: 1.5rem;
-}
-
-.kai-browser-layout .kai-search-panel > .flex,
-.kai-browser-layout .kai-search-panel > .grid,
-.kai-browser-layout .kai-search-panel details .grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.kai-browser-layout .kai-search-panel > .flex:last-child {
-  display: flex;
+  margin-bottom: 1.5rem;
 }
 
 .kai-browser-layout turbo-frame {
@@ -543,16 +625,6 @@ label {
 
 @media (max-width: 700px) {
   .kai-page-heading { align-items: flex-start; gap: 1rem; }
-}
-
-@media (max-width: 960px) {
-  .kai-browser-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .kai-browser-layout .kai-search-panel {
-    position: static;
-  }
 }
 
 /* ========================================
@@ -744,6 +816,7 @@ label {
   padding: 0.625rem 1rem;
   color: var(--m-text-secondary);
   border-bottom: 1px solid var(--m-border);
+  vertical-align: middle;
 }
 
 .kai-table tbody tr {
@@ -771,6 +844,22 @@ label {
   text-decoration: underline;
 }
 
+.kai-table-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 8rem;
+}
+
+.kai-table td .kai-table-tags .kai-tag {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.65rem;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
 /* ========================================
    METADATA DEFINITION LIST
    ======================================== */
@@ -788,11 +877,79 @@ label {
 .kai-dl dd {
   font-size: 0.85rem;
   color: var(--m-text);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .kai-dl .mono-val {
   font-family: var(--kai-display);
   font-size: 0.8rem;
+}
+
+/* ========================================
+   CAPTURE DETAIL
+   ======================================== */
+.kai-pcap-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.kai-pcap-heading h1 {
+  overflow-wrap: anywhere;
+}
+
+.kai-pcap-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.kai-pcap-detail .kai-dl > .flex {
+  gap: 1rem;
+}
+
+.kai-pcap-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.kai-pcap-analysis {
+  margin-top: 1.5rem;
+}
+
+.kai-pcap-analysis .kai-dl {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.kai-pcap-detail .kai-dl dd {
+  flex: 1;
+}
+
+@media (max-width: 700px) {
+  .kai-pcap-heading {
+    flex-direction: column;
+  }
+
+  .kai-pcap-actions {
+    justify-content: flex-start;
+  }
+
+  .kai-pcap-detail .kai-dl > .flex {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .kai-pcap-detail .kai-dl dt {
+    width: auto;
+  }
 }
 
 /* ========================================

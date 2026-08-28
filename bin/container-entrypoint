@@ -14,6 +14,11 @@ if [ "${1:-web}" = "worker" ]; then
   exec python manage.py analyze_pcaps
 fi
 
+if [ "${1:-web}" = "backup" ]; then
+  shift
+  exec /bin/bash /app/bin/backup "$@"
+fi
+
 python manage.py migrate --noinput
 exec gunicorn config.wsgi --bind 0.0.0.0:3022 \
   --workers "${WEB_CONCURRENCY:-3}" --access-logfile - --error-logfile - \

@@ -49,11 +49,19 @@ def test_pcaps_new_requires_auth(client, logged_in):
 
 
 def test_pcaps_index_shows_browse_page(client, logged_in):
-    assert client.get("/pcaps").status_code == 200
+    response = client.get("/pcaps")
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'for="platform"' not in content
+    assert 'for="sponsor"' not in content
 
 
 def test_pcaps_new_shows_upload_form(client, logged_in):
-    assert client.get("/pcaps/new").status_code == 200
+    response = client.get("/pcaps/new")
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert 'for="pcap_platform"' not in content
+    assert 'for="pcap_sponsor"' not in content
 
 
 def test_upload_creates_pcap(client, logged_in):
@@ -77,6 +85,15 @@ def test_upload_rejects_non_pcap_files(client, logged_in):
 def test_show_pcap(client, logged_in):
     pcap = logged_in.pcaps.create(filename="show.pcap", file_size=1024, sha256="abc123")
     assert client.get(f"/pcaps/{pcap.id}").status_code == 200
+
+
+def test_show_pcap_tags_link_to_filtered_captures(client, logged_in):
+    pcap = logged_in.pcaps.create(filename="tagged.pcap")
+    pcap.tags.add(Tag.objects.create(name="modbus/tcp"))
+
+    response = client.get(f"/pcaps/{pcap.id}")
+
+    assert 'href="/pcaps?tags=modbus/tcp"' in response.content.decode()
 
 
 def test_show_pcap_displays_tshark_analysis(client, logged_in):
