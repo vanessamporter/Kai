@@ -25,6 +25,8 @@ services:
       DJANGO_SECURE_COOKIES: "0"
       ALLOW_PUBLIC_SIGNUP: "1"
       REQUIRE_SIGNUP_APPROVAL: "1"
+      KAI_INITIAL_ADMIN_EMAIL: "${KAI_INITIAL_ADMIN_EMAIL:-}"
+      KAI_INITIAL_ADMIN_PASSWORD: "${KAI_INITIAL_ADMIN_PASSWORD:-}"
     depends_on:
       db:
         condition: service_started

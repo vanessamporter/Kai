@@ -210,6 +210,17 @@ def pcaps_download(request, pk):
     if pcap is None:
         return _not_found()
     if pcap.file:
+        audit(
+            request,
+            "pcap_download",
+            user=request.api_user,
+            details={
+                "pcap_id": pcap.id,
+                "filename": pcap.filename,
+                "downloader_email": request.api_user.email,
+                "source": "api",
+            },
+        )
         return FileResponse(
             pcap.file.open("rb"),
             as_attachment=True,

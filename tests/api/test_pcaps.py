@@ -6,7 +6,7 @@ import pytest
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from kai.models import Pcap, Tag
+from kai.models import Pcap, SecurityEvent, Tag
 
 pytestmark = pytest.mark.django_db
 
@@ -153,6 +153,10 @@ def test_download_streams_file(client, pcap):
     response = client.get(f"/api/v1/pcaps/{pcap.id}/download", headers=AUTH)
     assert response.status_code == 200
     assert b"".join(response.streaming_content) == b"pcap data"
+    event = SecurityEvent.objects.get(event="pcap_download")
+    assert event.user.email == "apipcap@example.com"
+    assert event.details["source"] == "api"
+    assert event.details["pcap_id"] == pcap.id
 
 
 def test_download_returns_404_without_file(client, pcap):

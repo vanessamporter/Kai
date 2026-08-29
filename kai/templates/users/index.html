@@ -33,5 +33,23 @@
       </tbody>
     </table>
   </div>
+
+  <div class="kai-card overflow-x-auto mt-6" style="padding:0;">
+    <div class="kai-card-header" style="margin:1.25rem 1.25rem 0;">Recent downloads</div>
+    <table class="kai-table">
+      <thead><tr><th>Account</th><th>File</th><th>Method</th><th>IP address</th><th>Downloaded</th></tr></thead>
+      <tbody>
+        {% for download in downloads %}
+          <tr>
+            <td>{% if download.user %}{{ download.user.email }}{% else %}{{ download.details.downloader_email|default:"Deleted account" }}{% endif %}</td>
+            <td><a href="/pcaps/{{ download.details.pcap_id }}">{{ download.details.filename }}</a></td>
+            <td>{{ download.details.source|upper }}</td>
+            <td class="mono-val">{{ download.ip_address|default:"—" }}</td>
+            <td>{{ download.created_at|date:"Y-m-d H:i:s T" }}</td>
+          </tr>
+        {% empty %}<tr><td colspan="5">No downloads recorded yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

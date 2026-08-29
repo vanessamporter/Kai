@@ -38,7 +38,12 @@ Kai uses email addresses as usernames. In the recommended group configuration,
 visitors can request access but cannot log in until a staff user approves the
 request from **Users**. Staff may also create active accounts directly.
 
-Create the first administrator after starting Kai:
+For a new deployment, set `KAI_INITIAL_ADMIN_EMAIL` and
+`KAI_INITIAL_ADMIN_PASSWORD` before the first startup. Kai creates that active
+administrator after migrations and never resets its password on later restarts.
+Remove the password from the environment after the first successful startup.
+
+You can also create an administrator interactively after starting Kai:
 
 ```bash
 podman compose exec app python manage.py createsuperuser --email admin@example.com
@@ -47,6 +52,11 @@ podman compose exec app python manage.py createsuperuser --email admin@example.c
 Existing users and captures are not changed when approval mode is enabled.
 Passwords are stored only as bcrypt hashes. Configure SMTP before relying on
 password resets.
+
+Administrators can see the 100 most recent capture downloads on the Users page,
+including account, filename, web/API source, IP address, and timestamp. Download
+records are retained in PostgreSQL security events even if the capture is later
+deleted.
 
 ## Production checklist
 
@@ -86,6 +96,8 @@ stopped application using `pg_restore` for the database and extract
 | `DJANGO_ALLOWED_HOSTS` | Allowed hosts |
 | `ALLOW_PUBLIC_SIGNUP` | Show the access-request form |
 | `REQUIRE_SIGNUP_APPROVAL` | Keep requested accounts inactive until staff approval |
+| `KAI_INITIAL_ADMIN_EMAIL` | Initial administrator email used idempotently at startup |
+| `KAI_INITIAL_ADMIN_PASSWORD` | Initial password; remove after administrator creation |
 | `MAX_PCAP_UPLOAD_BYTES` | Upload limit |
 | `LDAP_SERVER_URI` | Optional LDAPS/StartTLS directory |
 | `SOURCE_CODE_URL` | AGPL source repository URL |

@@ -20,6 +20,7 @@ if [ "${1:-web}" = "backup" ]; then
 fi
 
 python manage.py migrate --noinput
+python manage.py bootstrap_admin
 exec gunicorn config.wsgi --bind 0.0.0.0:3022 \
   --workers "${WEB_CONCURRENCY:-3}" --access-logfile - --error-logfile - \
   --no-control-socket

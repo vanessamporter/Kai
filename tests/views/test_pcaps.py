@@ -4,7 +4,7 @@ import pytest
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from kai.models import Pcap, Tag
+from kai.models import Pcap, SecurityEvent, Tag
 
 pytestmark = pytest.mark.django_db
 
@@ -143,6 +143,35 @@ def test_download_streams_file(client, logged_in):
     response = client.get(f"/pcaps/{pcap.id}/download")
     assert response.status_code == 200
     assert b"".join(response.streaming_content) == b"fake pcap data"
+    event = SecurityEvent.objects.get(event="pcap_download")
+    assert event.user == logged_in
+    assert event.details == {
+        "pcap_id": pcap.id,
+        "filename": "download.pcap",
+        "downloader_email": logged_in.email,
+        "source": "web",
+    }
+
+
+def test_show_download_bypasses_turbo(client, logged_in):
+    pcap = logged_in.pcaps.create(filename="download.pcap")
+
+    content = client.get(f"/pcaps/{pcap.id}").content.decode()
+
+    assert f'href="/pcaps/{pcap.id}/download"' in content
+    assert 'data-turbo="false"' in content
+    assert 'data-turbo-prefetch="false"' in content
+
+
+def test_prefetched_download_is_not_audited(client, logged_in):
+    pcap = logged_in.pcaps.create(filename="prefetched.pcap")
+    pcap.file.save("prefetched.pcap", ContentFile(b"fake pcap data"))
+
+    response = client.get(f"/pcaps/{pcap.id}/download", headers={"Purpose": "prefetch"})
+
+    assert response.status_code == 200
+    assert b"".join(response.streaming_content) == b"fake pcap data"
+    assert not SecurityEvent.objects.filter(event="pcap_download").exists()
 
 
 def test_upload_shows_duplicate_sha256_warning(client, logged_in):

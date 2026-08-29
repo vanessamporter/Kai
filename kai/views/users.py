@@ -1,18 +1,25 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
-from kai.models import User
+from kai.models import SecurityEvent, User
 from kai.security import audit
 from kai.views.helpers import staff_required, validate_new_user
 
 
 @staff_required
+@never_cache
 def collection(request):
     if request.method == "POST":
         return create(request)
     users = User.objects.order_by("-created_at")
-    return render(request, "users/index.html", {"users": users})
+    downloads = (
+        SecurityEvent.objects.filter(event="pcap_download")
+        .select_related("user")
+        .order_by("-created_at")[:100]
+    )
+    return render(request, "users/index.html", {"users": users, "downloads": downloads})
 
 
 def create(request):

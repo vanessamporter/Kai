@@ -13,6 +13,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 from kai import pcap_metadata
 from kai.analysis import enqueue
 from kai.models import LookupValue, Pcap, Tag
+from kai.security import audit
 from kai.templatetags.kai_helpers import human_size
 from kai.views.helpers import login_required, require_owner_or_staff
 
@@ -301,8 +302,22 @@ def destroy(request, pk):
 def download(request, pk):
     pcap = get_object_or_404(Pcap, pk=pk)
     if pcap.file:
+        file_handle = pcap.file.open("rb")
+        purpose = request.headers.get("Purpose") or request.headers.get("Sec-Purpose", "")
+        if "prefetch" not in purpose.lower():
+            audit(
+                request,
+                "pcap_download",
+                user=request.user,
+                details={
+                    "pcap_id": pcap.id,
+                    "filename": pcap.filename,
+                    "downloader_email": request.user.email,
+                    "source": "web",
+                },
+            )
         return FileResponse(
-            pcap.file.open("rb"),
+            file_handle,
             as_attachment=True,
             filename=pcap.filename,
             content_type="application/vnd.tcpdump.pcap",

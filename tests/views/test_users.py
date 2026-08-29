@@ -1,6 +1,6 @@
 import pytest
 
-from kai.models import User
+from kai.models import SecurityEvent, User
 
 pytestmark = pytest.mark.django_db
 
@@ -58,3 +58,28 @@ def test_staff_can_create_another_administrator(client, staff):
 
     assert response.status_code == 302
     assert User.objects.get(email="second-admin@example.com").is_staff
+
+
+def test_staff_can_view_download_activity(client, staff, make_user):
+    member = make_user(email="downloader@example.com")
+    SecurityEvent.objects.create(
+        user=member,
+        event="pcap_download",
+        ip_address="192.0.2.10",
+        details={
+            "pcap_id": 42,
+            "filename": "group-capture.pcap",
+            "downloader_email": member.email,
+            "source": "web",
+        },
+    )
+
+    response = client.get("/users")
+    content = response.content.decode()
+
+    assert "downloader@example.com" in content
+    assert "group-capture.pcap" in content
+    assert "192.0.2.10" in content
+    assert response.headers["Cache-Control"] == (
+        "max-age=0, no-cache, no-store, must-revalidate, private"
+    )
