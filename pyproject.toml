@@ -9,7 +9,7 @@ dependencies = [
     "django~=6.1",
     "psycopg[binary]~=3.3",
     "bcrypt>=4.1",
-    "gunicorn>=26.2.0",
+    "gunicorn>=27.0.1",
     "whitenoise>=6.8",
     "django-auth-ldap>=5.2,<6",
 ]
